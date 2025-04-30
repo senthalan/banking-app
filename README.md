@@ -22,8 +22,4 @@ A sample banking application built with:
 - npm  
 - Choreo account  
 
-### 1. Clone the Repository
 
-```bash
-git clone https://github.com/ramith/banking-app.git
-cd banking-app
