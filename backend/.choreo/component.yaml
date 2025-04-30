@@ -27,6 +27,5 @@ endpoints:
 
 dependencies:
     connectionReferences:
-    - name: bankingapp
+    - name: bankingdb
       resourceRef: database:banking-data/bankingapp
-    
