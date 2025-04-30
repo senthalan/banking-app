@@ -34,16 +34,18 @@ type Transaction struct {
 var db *gorm.DB
 
 func initDB() {
-	host := os.Getenv("MYSQL_HOST")
-	user := os.Getenv("MYSQL_USER")
-	password := os.Getenv("MYSQL_PWD")
-	dbName := os.Getenv("MYSQL_DB")
+	host := os.Getenv("CHOREO_BANKINGAPP_HOSTNAME")
+	port := os.Getenv("CHOREO_BANKINGAPP_PORT")
+	user := os.Getenv("CHOREO_BANKINGAPP_USERNAME")
+	password := os.Getenv("CHOREO_BANKINGAPP_PASSWORD")
+	dbName := os.Getenv("CHOREO_BANKINGAPP_DATABASENAME")
 
-	if host == "" || user == "" || password == "" || dbName == "" {
+	if host == "" || port == "" || user == "" || password == "" || dbName == "" {
 		log.Fatal("One or more required MySQL environment variables are not set")
 	}
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local&tls=skip-verify", user, password, host, dbName)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local&tls=skip-verify",
+		user, password, host, port, dbName)
 
 	var err error
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
