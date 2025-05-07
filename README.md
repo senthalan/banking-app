@@ -17,8 +17,8 @@ A sample banking application built with:
 
 ### Prerequisites
 
-- Node.js ≥ 22  
-- MySQL ≥ 8  
+- Node.js > 21  
+- MySQL > 7  
 - npm  
 - Choreo account  
 
