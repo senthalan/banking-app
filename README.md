@@ -2,18 +2,18 @@
 
 A sample banking application built with:
 
-- 🔐 Choreo-managed authentication  
-- 🖥️ Node.js backend (Backend for Frontend pattern)  
-- 🌐 React.js single-page frontend  
-- 🗄️ MySQL database  
-- 🚀 Deployed on [WSO2 Choreo](https://wso2.com/choreo/)
+- Choreo-managed authentication  
+- Node.js backend (Backend for Frontend pattern)  
+- React.js single-page frontend  
+- MySQL database  
+- Deployed on [WSO2 Choreo](https://wso2.com/choreo/)
 
-## 🧱 Architecture
+## Architecture
 
-[ React SPA ] ⇄ [ Node.js Backend (BFF) ] ⇄ [ MySQL DB ] ⇑ [ Choreo Authentication ]
+[ React SPA ]  [ Node.js Backend (BFF) ]  [ MySQL DB ]  [ Choreo Authentication ]
 
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
