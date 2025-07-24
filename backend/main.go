@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type BankAccount struct {
@@ -46,7 +47,7 @@ func initDB() {
 	}
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local&tls=skip-verify",
-	username, password, hostname, port, databasename)
+		username, password, hostname, port, databasename)
 
 	var err error
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
@@ -65,6 +66,7 @@ func main() {
 	r.DELETE("/users/:userId/accounts/:id", deleteAccount)
 	r.POST("/users/:userId/transactions", makeTransaction)
 	r.GET("/users/:userId/transactions", listTransactions)
+	r.GET("/internal/transactions", listInternalTransactions)
 
 	r.Run()
 }
@@ -172,6 +174,18 @@ func listTransactions(c *gin.Context) {
 	userID := parseUint(c.Param("userId"))
 	var txs []Transaction
 	db.Where("user_id = ?", userID).Find(&txs)
+	if txs == nil {
+		txs = []Transaction{}
+	}
+	c.JSON(http.StatusOK, txs)
+}
+
+func listInternalTransactions(c *gin.Context) {
+	// Calculate 24 hours ago from current time
+	twentyFourHoursAgo := time.Now().Add(-24 * time.Hour)
+
+	var txs []Transaction
+	db.Where("created_at >= ?", twentyFourHoursAgo).Find(&txs)
 	if txs == nil {
 		txs = []Transaction{}
 	}
