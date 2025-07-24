@@ -35,7 +35,7 @@ var db *gorm.DB
 
 func initDB() {
 	////////////////////////////////////////////////
-	hostname := os.Getenv("CHOREO_BANKINGDB_HOSTNAME")
+	hostname := os.Getenv("CHOREO_BANKINGDB_HOSTNAME") //
 	port := os.Getenv("CHOREO_BANKINGDB_PORT")
 	username := os.Getenv("CHOREO_BANKINGDB_USERNAME")
 	password := os.Getenv("CHOREO_BANKINGDB_PASSWORD")
