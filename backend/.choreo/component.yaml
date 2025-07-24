@@ -25,7 +25,7 @@ endpoints:
     # The path should be relative to the docker context.
     schemaFilePath: openapi.yaml
 
-dependencies:
-    connectionReferences:
-    - name: bankingdb
-      resourceRef: database:banking/banking
+# dependencies:
+#     connectionReferences:
+#     - name: bankingdb
+#       resourceRef: database:banking/banking
