@@ -39,7 +39,7 @@ func main() {
 
 	// Get configuration from environment variables
 	config := getEmailConfig()
-	
+
 	// Fetch transactions from internal API
 	transactions, err := fetchTransactions()
 	if err != nil {
@@ -92,7 +92,7 @@ func getEnvAsIntOrDefault(key string, defaultValue int) int {
 
 func fetchTransactions() ([]Transaction, error) {
 	// Get the banking service URL from environment or use default
-	baseURL := getEnvOrDefault("BANKING_SERVICE_URL", "http://localhost:8080")
+	baseURL := getEnvOrDefault("CHOREO_INTERNAL_SERVICEURL", "http://localhost:8080")
 	url := fmt.Sprintf("%s/internal/transactions", baseURL)
 
 	log.Printf("Fetching transactions from: %s", url)
@@ -194,7 +194,7 @@ Banking System
 	d := gomail.NewDialer(config.SMTPHost, config.SMTPPort, config.SMTPUsername, config.SMTPPassword)
 
 	log.Printf("Sending email to: %s", config.ToEmail)
-	
+
 	if err := d.DialAndSend(m); err != nil {
 		return fmt.Errorf("failed to send email: %w", err)
 	}
