@@ -61,11 +61,11 @@ func main() {
 	initDB()
 	r := gin.Default()
 
-	r.POST("/users/:userId/accounts", createAccount)
-	r.GET("/users/:userId/accounts", listAccounts)
-	r.DELETE("/users/:userId/accounts/:id", deleteAccount)
-	r.POST("/users/:userId/transactions", makeTransaction)
-	r.GET("/users/:userId/transactions", listTransactions)
+	r.POST("/public/users/:userId/accounts", createAccount)
+	r.GET("/public/users/:userId/accounts", listAccounts)
+	r.DELETE("/public/users/:userId/accounts/:id", deleteAccount)
+	r.POST("/public/users/:userId/transactions", makeTransaction)
+	r.GET("/public/users/:userId/transactions", listTransactions)
 	r.GET("/internal/transactions", listInternalTransactions)
 
 	r.Run()
