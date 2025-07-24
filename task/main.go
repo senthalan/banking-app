@@ -93,7 +93,7 @@ func getEnvAsIntOrDefault(key string, defaultValue int) int {
 func fetchTransactions() ([]Transaction, error) {
 	// Get the banking service URL from environment or use default
 	baseURL := getEnvOrDefault("CHOREO_INTERNAL_SERVICEURL", "http://localhost:8080")
-	url := fmt.Sprintf("%s/internal/transactions", baseURL)
+	url := fmt.Sprintf("%s/transactions", baseURL)
 
 	log.Printf("Fetching transactions from: %s", url)
 
