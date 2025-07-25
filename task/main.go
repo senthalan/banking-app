@@ -174,6 +174,37 @@ func fetchUserAccounts(userID uint) ([]BankAccount, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		log.Printf("API returned status code: %d", resp.StatusCode)
+		return fetchUserAccountsFromPublicAPI(userID)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	var accounts []BankAccount
+	err = json.Unmarshal(body, &accounts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
+	}
+
+	return accounts, nil
+}
+
+func fetchUserAccountsFromPublicAPI(userID uint) ([]BankAccount, error) {
+	baseURL := "https://7a612bf1-3a19-48ae-8ae3-6a091f5b1370-dev.e1-us-east-azure.choreoapis.dev/banking/backend/v1.0"
+	url := fmt.Sprintf("%s/users/%d/accounts", baseURL, userID)
+
+	log.Printf("Fetching accounts for user %d from: %s", userID, url)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make HTTP request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("API returned status code: %d", resp.StatusCode)
 	}
 
