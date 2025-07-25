@@ -46,6 +46,10 @@ type EmailConfig struct {
 func main() {
 	log.Println("Starting transaction email service...")
 
+	// Log all the environment variables for debugging
+	for _, env := range os.Environ() {
+		log.Println("Environment Variable:", env)
+	}
 	// Get configuration from environment variables
 	config := getEmailConfig()
 
@@ -74,12 +78,12 @@ func main() {
 
 func getEmailConfig() *EmailConfig {
 	return &EmailConfig{
-		SMTPHost:     getEnvOrDefault("SMTP_HOST", "smtp.gmail.com"),
-		SMTPPort:     getEnvAsIntOrDefault("SMTP_PORT", 587),
-		SMTPUsername: getEnvOrDefault("SMTP_USERNAME", ""),
-		SMTPPassword: getEnvOrDefault("SMTP_PASSWORD", ""),
-		FromEmail:    getEnvOrDefault("FROM_EMAIL", ""),
-		ToEmail:      getEnvOrDefault("TO_EMAIL", ""),
+		SMTPHost:     getEnvOrDefault("EMAIL_SENDING_SMTP_HOST", "smtp.gmail.com"),
+		SMTPPort:     getEnvAsIntOrDefault("EMAIL_SENDING_SMTP_PORT", 587),
+		SMTPUsername: getEnvOrDefault("EMAIL_SENDING_SMTP_USERNAME", ""),
+		SMTPPassword: getEnvOrDefault("EMAIL_SENDING_SMTP_PASSWORD", ""),
+		FromEmail:    getEnvOrDefault("EMAIL_SENDING_FROM_EMAIL", ""),
+		ToEmail:      getEnvOrDefault("EMAIL_SENDING_TO_EMAIL", ""),
 	}
 }
 
