@@ -137,27 +137,14 @@ func fetchTransactions() ([]Transaction, error) {
 }
 
 func fetchAndLogUserAccounts() error {
-	// Get unique user IDs from transactions
-	userIDs := make(map[uint]bool)
-	userIDs[1] = true // Simulating user IDs for demonstration
 
-	log.Printf("Found %d unique users in transactions", len(userIDs))
-
-	// Fetch accounts for each user
-	for userID := range userIDs {
-		accounts, err := fetchUserAccounts(userID)
-		if err != nil {
-			log.Printf("Error fetching accounts for user %d: %v", userID, err)
-			continue
-		}
-
-		log.Printf("User %d has %d accounts:", userID, len(accounts))
-		for _, account := range accounts {
-			log.Printf("  - Account ID: %d, Account No: %s, Bank: %s, Owner: %s, Balance: %.2f %s",
-				account.ID, account.AccountNo, account.BankName, account.Owner, account.Balance, "USD")
-		}
+	accounts, err := fetchUserAccounts(1)
+	if err != nil {
+		log.Printf("Error fetching accounts for user %d: %v", 1, err)
+		return err
 	}
 
+	log.Printf("User %d has %d accounts:", 1, len(accounts))
 	return nil
 }
 
@@ -175,6 +162,7 @@ func fetchUserAccounts(userID uint) ([]BankAccount, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		log.Printf("API returned status code: %d", resp.StatusCode)
+		log.Printf("Attempting to fetch accounts from public API as fallback")
 		return fetchUserAccountsFromPublicAPI(userID)
 	}
 
