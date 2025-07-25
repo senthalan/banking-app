@@ -46,10 +46,6 @@ type EmailConfig struct {
 func main() {
 	log.Println("Starting transaction email service...")
 
-	// Log all the environment variables for debugging
-	for _, env := range os.Environ() {
-		log.Println("Environment Variable:", env)
-	}
 	// Get configuration from environment variables
 	config := getEmailConfig()
 
