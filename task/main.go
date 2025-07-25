@@ -46,12 +46,6 @@ type EmailConfig struct {
 func main() {
 	log.Println("Starting transaction email service...")
 
-	// Fetch and log accounts for all users in transactions
-	err := fetchAndLogUserAccounts()
-	if err != nil {
-		log.Printf("Warning: Failed to fetch user accounts: %v", err)
-	}
-
 	// Get configuration from environment variables
 	config := getEmailConfig()
 
@@ -134,80 +128,6 @@ func fetchTransactions() ([]Transaction, error) {
 	}
 
 	return transactions, nil
-}
-
-func fetchAndLogUserAccounts() error {
-
-	accounts, err := fetchUserAccounts(1)
-	if err != nil {
-		log.Printf("Error fetching accounts for user %d: %v", 1, err)
-		return err
-	}
-
-	log.Printf("User %d has %d accounts:", 1, len(accounts))
-	return nil
-}
-
-func fetchUserAccounts(userID uint) ([]BankAccount, error) {
-	baseURL := "http://backend-1415777742:8080"
-	url := fmt.Sprintf("%s/public/users/%d/accounts", baseURL, userID)
-
-	log.Printf("Fetching accounts for user %d from: %s", userID, url)
-
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("failed to make HTTP request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		log.Printf("API returned status code: %d", resp.StatusCode)
-		log.Printf("Attempting to fetch accounts from public API as fallback")
-		return fetchUserAccountsFromPublicAPI(userID)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	var accounts []BankAccount
-	err = json.Unmarshal(body, &accounts)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
-	}
-
-	return accounts, nil
-}
-
-func fetchUserAccountsFromPublicAPI(userID uint) ([]BankAccount, error) {
-	baseURL := "https://7a612bf1-3a19-48ae-8ae3-6a091f5b1370-dev.e1-us-east-azure.choreoapis.dev/banking/backend/v1.0"
-	url := fmt.Sprintf("%s/users/%d/accounts", baseURL, userID)
-
-	log.Printf("Fetching accounts for user %d from: %s", userID, url)
-
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("failed to make HTTP request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API returned status code: %d", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	var accounts []BankAccount
-	err = json.Unmarshal(body, &accounts)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
-	}
-
-	return accounts, nil
 }
 
 func generateCSV(transactions []Transaction) ([]byte, error) {
