@@ -25,6 +25,15 @@ type Transaction struct {
 	CreatedAt     time.Time `json:"created_at"`
 }
 
+type BankAccount struct {
+	ID        uint    `json:"id"`
+	UserID    uint    `json:"user_id"`
+	Owner     string  `json:"owner"`
+	AccountNo string  `json:"account_no"`
+	BankName  string  `json:"bank_name"`
+	Balance   float64 `json:"balance"`
+}
+
 type EmailConfig struct {
 	SMTPHost     string
 	SMTPPort     int
@@ -36,6 +45,12 @@ type EmailConfig struct {
 
 func main() {
 	log.Println("Starting transaction email service...")
+
+	// Fetch and log accounts for all users in transactions
+	err := fetchAndLogUserAccounts()
+	if err != nil {
+		log.Printf("Warning: Failed to fetch user accounts: %v", err)
+	}
 
 	// Get configuration from environment variables
 	config := getEmailConfig()
@@ -119,6 +134,61 @@ func fetchTransactions() ([]Transaction, error) {
 	}
 
 	return transactions, nil
+}
+
+func fetchAndLogUserAccounts() error {
+	// Get unique user IDs from transactions
+	userIDs := make(map[uint]bool)
+	userIDs[1] = true // Simulating user IDs for demonstration
+
+	log.Printf("Found %d unique users in transactions", len(userIDs))
+
+	// Fetch accounts for each user
+	for userID := range userIDs {
+		accounts, err := fetchUserAccounts(userID)
+		if err != nil {
+			log.Printf("Error fetching accounts for user %d: %v", userID, err)
+			continue
+		}
+
+		log.Printf("User %d has %d accounts:", userID, len(accounts))
+		for _, account := range accounts {
+			log.Printf("  - Account ID: %d, Account No: %s, Bank: %s, Owner: %s, Balance: %.2f %s",
+				account.ID, account.AccountNo, account.BankName, account.Owner, account.Balance, "USD")
+		}
+	}
+
+	return nil
+}
+
+func fetchUserAccounts(userID uint) ([]BankAccount, error) {
+	baseURL := "http://backend-1415777742:8080"
+	url := fmt.Sprintf("%s/public/users/%d/accounts", baseURL, userID)
+
+	log.Printf("Fetching accounts for user %d from: %s", userID, url)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make HTTP request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("API returned status code: %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	var accounts []BankAccount
+	err = json.Unmarshal(body, &accounts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
+	}
+
+	return accounts, nil
 }
 
 func generateCSV(transactions []Transaction) ([]byte, error) {
