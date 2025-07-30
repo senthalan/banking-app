@@ -103,10 +103,21 @@ func fetchTransactions() ([]Transaction, error) {
 	// Get the banking service URL from environment or use default
 	baseURL := getEnvOrDefault("CHOREO_INTERNAL_SERVICEURL", "http://localhost:8080")
 	url := fmt.Sprintf("%s/transactions", baseURL)
+	apiKeyHeader := os.Getenv("CHOREO_BANKING_BACKEND_CHOREOAPIKEY")
 
 	log.Printf("Fetching transactions from: %s", url)
 
-	resp, err := http.Get(url)
+	client := &http.Client{}
+	// Provide the correct resource path
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		// Handle error
+	}
+	req.Header.Add("Choreo-API-Key", apiKeyHeader)
+	resp, err := client.Do(req)
+	if err != nil {
+		// Handle error
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to make HTTP request: %w", err)
 	}
