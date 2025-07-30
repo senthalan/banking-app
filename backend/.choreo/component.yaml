@@ -2,6 +2,26 @@ schemaVersion: "1.2"
 
 # +required Incoming connection details for the component
 endpoints:
+  # +required Unique name for the internal endpoint.
+  - name: backing-app-backend-internal
+    # +optional Display name for the internal endpoint.
+    displayName: Banking App Backend Internal
+    service:
+      # +optional Context (base path) of the API that gets exposed via the endpoint.
+      basePath: /internal
+      # +required Numeric port value that gets exposed via the endpoint
+      port: 8080
+    # +required Type of traffic that the endpoint is accepting.
+    # Allowed values: REST, GraphQL, WS, GRPC, TCP, UDP.
+    type: REST
+    # +optional Network level visibilities of the endpoint.
+    # Accepted values: Project|Organization|Public(Default).
+    networkVisibilities: 
+      - Organization
+    # +optional Path to the schema definition file. Defaults to wild card route if not provided
+    # This is only applicable to REST or WS endpoint types.
+    # The path should be relative to the docker context.
+    schemaFilePath: internal_openapi.yaml
   # +required Unique name for the endpoint.
   - name: backing-app-backend
     # +optional Display name for the endpoint.
@@ -23,26 +43,6 @@ endpoints:
     # This is only applicable to REST or WS endpoint types.
     # The path should be relative to the docker context.
     schemaFilePath: openapi.yaml
-  # +required Unique name for the internal endpoint.
-  - name: backing-app-backend-internal
-    # +optional Display name for the internal endpoint.
-    displayName: Banking App Backend Internal
-    service:
-      # +optional Context (base path) of the API that gets exposed via the endpoint.
-      basePath: /internal
-      # +required Numeric port value that gets exposed via the endpoint
-      port: 8080
-    # +required Type of traffic that the endpoint is accepting.
-    # Allowed values: REST, GraphQL, WS, GRPC, TCP, UDP.
-    type: REST
-    # +optional Network level visibilities of the endpoint.
-    # Accepted values: Project|Organization|Public(Default).
-    networkVisibilities: 
-      - Organization
-    # +optional Path to the schema definition file. Defaults to wild card route if not provided
-    # This is only applicable to REST or WS endpoint types.
-    # The path should be relative to the docker context.
-    schemaFilePath: internal_openapi.yaml
 
 dependencies:
     connectionReferences:
