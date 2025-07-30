@@ -18,7 +18,6 @@ endpoints:
     # +optional Network level visibilities of the endpoint.
     # Accepted values: Project|Organization|Public(Default).
     networkVisibilities: 
-      - Project
       - Public
     # +optional Path to the schema definition file. Defaults to wild card route if not provided
     # This is only applicable to REST or WS endpoint types.
@@ -39,7 +38,6 @@ endpoints:
     # +optional Network level visibilities of the endpoint.
     # Accepted values: Project|Organization|Public(Default).
     networkVisibilities: 
-      - Project
       - Organization
     # +optional Path to the schema definition file. Defaults to wild card route if not provided
     # This is only applicable to REST or WS endpoint types.
@@ -49,4 +47,5 @@ endpoints:
 dependencies:
     connectionReferences:
     - name: bankingdb
-      resourceRef: database:banking/banking
+      resourceRef: database:banking-dev/banking
+    
