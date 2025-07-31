@@ -4,3 +4,21 @@ dependencies:
     connectionReferences:
     - name: Banking Backend
       resourceRef: service:/banking-core/backend/v1/6b20a/ORGANIZATION
+# +optional Defines runtime configurations
+configurations:
+  # +optional List of environment variables to be injected into the component.
+  env:
+    # +required Name of the environment variable
+    - name: EMAIL_SENDING_TO_EMAIL
+      # +required value source
+      # Allowed value sources: connectionRef, configForm
+      valueFrom:
+        # +required config form value source
+        configForm:
+            # +optional display name inside the config form, name will be shown in config form if not specified
+            displayName: To Email
+            # +optional default value is true if not specified
+            required: true
+            # +optional default value is string if not specified
+            # Allowed types - string, number, boolean, secret
+            type: string
