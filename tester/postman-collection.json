@@ -17,7 +17,7 @@
 							"// Generate random user data for the test session",
 							"const randomUserId = Math.floor(Math.random() * 1000000) + 1;",
 							"const randomAccountNumber = 'ACC' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');",
-							"const randomAmount = (Math.random() * 10000 + 100).toFixed(2);",
+							"const randomAmount = (Math.random() * 500 + 50).toFixed(2); // Smaller amount to avoid insufficient funds",
 							"",
 							"// Store in environment variables",
 							"pm.environment.set('userId', randomUserId);",
@@ -35,17 +35,24 @@
 			],
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "choreo-api-key",
+						"value": "{{choreoApiKey}}"
+					}
+				],
 				"url": {
-					"raw": "{{baseUrl}}/health",
+					"raw": "{{baseUrl}}/users/1/accounts",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
-						"health"
+						"users",
+						"1", 
+						"accounts"
 					]
 				},
-				"description": "Setup request to generate random test data"
+				"description": "Setup request to generate random test data and test API connectivity"
 			},
 			"response": []
 		},
@@ -75,14 +82,17 @@
 							"    pm.expect(responseJson.user_id).to.eql(parseInt(pm.environment.get('userId')));",
 							"    pm.expect(responseJson.owner).to.eql(pm.environment.get('ownerName'));",
 							"    pm.expect(responseJson.account_no).to.eql(pm.environment.get('accountNumber'));",
-							"    pm.expect(responseJson.balance).to.eql(1000.0);",
+							"    // Balance is randomly set by backend (1000-5000), so just check it's a positive number",
+							"    pm.expect(responseJson.balance).to.be.above(0);",
 							"});",
 							"",
-							"// Store account ID for later use",
+							"// Store account ID and balance for later use",
 							"if (pm.response.code === 201) {",
 							"    const responseJson = pm.response.json();",
 							"    pm.environment.set('accountId', responseJson.id);",
+							"    pm.environment.set('accountBalance', responseJson.balance);",
 							"    console.log('Created Account ID:', responseJson.id);",
+							"    console.log('Account Balance:', responseJson.balance);",
 							"}"
 						],
 						"type": "text/javascript"
@@ -180,11 +190,13 @@
 							"    pm.response.to.have.status(201);",
 							"});",
 							"",
-							"// Store second account ID for transfer",
+							"// Store second account ID and balance for transfer",
 							"if (pm.response.code === 201) {",
 							"    const responseJson = pm.response.json();",
 							"    pm.environment.set('secondAccountId', responseJson.id);",
+							"    pm.environment.set('secondAccountBalance', responseJson.balance);",
 							"    console.log('Created Second Account ID:', responseJson.id);",
+							"    console.log('Second Account Balance:', responseJson.balance);",
 							"}"
 						],
 						"type": "text/javascript"
@@ -197,7 +209,13 @@
 							"// Generate second account number",
 							"const secondAccountNumber = 'ACC' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');",
 							"pm.environment.set('secondAccountNumber', secondAccountNumber);",
-							"console.log('Generated Second Account Number:', secondAccountNumber);"
+							"console.log('Generated Second Account Number:', secondAccountNumber);",
+							"",
+							"// Adjust transaction amount to be smaller than account balance",
+							"const accountBalance = parseFloat(pm.environment.get('accountBalance')) || 1000;",
+							"const safeTransactionAmount = Math.min(accountBalance * 0.3, parseFloat(pm.environment.get('transactionAmount')));",
+							"pm.environment.set('transactionAmount', safeTransactionAmount.toFixed(2));",
+							"console.log('Adjusted Transaction Amount to:', safeTransactionAmount);"
 						],
 						"type": "text/javascript"
 					}
