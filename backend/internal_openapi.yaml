@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: Internal APIs for banking microservice operations
 paths:
-  /internal/transactions:
+  /transactions:
     get:
       summary: List all transactions from last 24 hours
       description: Internal API to retrieve all transactions made within the last 24 hours
