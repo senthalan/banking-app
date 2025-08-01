@@ -1,0 +1,110 @@
+name: Banking API E2E Tests
+
+on:
+  schedule:
+    # Run tests every hour
+    - cron: '0 * * * *'
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Base URL for the API'
+        required: false
+        default: 'https://your-api-endpoint.com'
+      choreo_api_key:
+        description: 'Choreo API Key (leave empty to use secret)'
+        required: false
+
+env:
+  BASE_URL: ${{ github.event.inputs.base_url || vars.BASE_URL || 'https://your-api-endpoint.com' }}
+  CHOREO_API_KEY: ${{ github.event.inputs.choreo_api_key || secrets.CHOREO_API_KEY }}
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Install Newman (Postman CLI)
+      run: npm install -g newman newman-reporter-htmlextra
+
+    - name: Create environment file
+      run: |
+        cat > banking-api-environment.json << EOF
+        {
+          "id": "banking-api-env",
+          "name": "Banking API Environment",
+          "values": [
+            {
+              "key": "baseUrl",
+              "value": "${{ env.BASE_URL }}",
+              "enabled": true
+            },
+            {
+              "key": "choreoApiKey",
+              "value": "${{ env.CHOREO_API_KEY }}",
+              "enabled": true
+            }
+          ]
+        }
+        EOF
+
+    - name: Validate environment configuration
+      run: |
+        echo "Base URL: ${{ env.BASE_URL }}"
+        if [ -z "${{ env.CHOREO_API_KEY }}" ]; then
+          echo "Warning: CHOREO_API_KEY is not set"
+        else
+          echo "Choreo API Key: SET"
+        fi
+
+    - name: Run E2E Tests
+      run: |
+        newman run tester/postman-collection.json \
+          --environment banking-api-environment.json \
+          --reporters cli,htmlextra \
+          --reporter-htmlextra-export test-results.html \
+          --reporter-htmlextra-title "Banking API E2E Test Report" \
+          --timeout-request 30000 \
+          --bail \
+          --color on
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: postman-test-results-${{ github.run_number }}
+        path: |
+          test-results.html
+          banking-api-environment.json
+        retention-days: 30
+
+    - name: Check test results
+      if: failure()
+      run: |
+        echo "E2E tests failed. Check the test results artifact for details."
+        exit 1
+
+  test-summary:
+    runs-on: ubuntu-latest
+    needs: e2e-tests
+    if: always()
+    
+    steps:
+    - name: Test Summary
+      run: |
+        if [ "${{ needs.e2e-tests.result }}" == "success" ]; then
+          echo "✅ All E2E tests passed successfully!"
+          echo "Base URL tested: ${{ env.BASE_URL }}"
+          echo "Test run: ${{ github.run_number }}"
+        else
+          echo "❌ E2E tests failed"
+          echo "Check the test results artifact for detailed information"
+          exit 1
+        fi

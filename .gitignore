@@ -44,6 +44,18 @@ logs/
 *.local
 
 # ===================================
+# E2E Testing
+# ===================================
+# Postman environment files with secrets
+tester/environment.json
+tester/*-environment.json
+!tester/environment.sample.json
+
+# Test results
+tester/test-results*.html
+tester/newman-results*.json
+
+# ===================================
 # Backend (Go)
 # ===================================
 # Binaries
