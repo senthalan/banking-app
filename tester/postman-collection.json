@@ -1,0 +1,492 @@
+{
+	"info": {
+		"_postman_id": "banking-api-e2e-tests",
+		"name": "Banking API E2E Tests",
+		"description": "End-to-end testing collection for Banking Microservice API with random dummy users",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "banking-api-tests"
+	},
+	"item": [
+		{
+			"name": "Setup - Generate Random User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Generate random user data for the test session",
+							"const randomUserId = Math.floor(Math.random() * 1000000) + 1;",
+							"const randomAccountNumber = 'ACC' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');",
+							"const randomAmount = (Math.random() * 10000 + 100).toFixed(2);",
+							"",
+							"// Store in environment variables",
+							"pm.environment.set('userId', randomUserId);",
+							"pm.environment.set('accountNumber', randomAccountNumber);",
+							"pm.environment.set('transactionAmount', randomAmount);",
+							"pm.environment.set('ownerName', 'User_' + randomUserId);",
+							"",
+							"console.log('Generated User ID:', randomUserId);",
+							"console.log('Generated Account Number:', randomAccountNumber);",
+							"console.log('Generated Transaction Amount:', randomAmount);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/health",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"health"
+					]
+				},
+				"description": "Setup request to generate random test data"
+			},
+			"response": []
+		},
+		{
+			"name": "Create Bank Account",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 201', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test('Response has required fields', function () {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.have.property('id');",
+							"    pm.expect(responseJson).to.have.property('user_id');",
+							"    pm.expect(responseJson).to.have.property('owner');",
+							"    pm.expect(responseJson).to.have.property('account_no');",
+							"    pm.expect(responseJson).to.have.property('bank_name');",
+							"    pm.expect(responseJson).to.have.property('balance');",
+							"});",
+							"",
+							"pm.test('Account created with correct data', function () {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson.user_id).to.eql(parseInt(pm.environment.get('userId')));",
+							"    pm.expect(responseJson.owner).to.eql(pm.environment.get('ownerName'));",
+							"    pm.expect(responseJson.account_no).to.eql(pm.environment.get('accountNumber'));",
+							"    pm.expect(responseJson.balance).to.eql(1000.0);",
+							"});",
+							"",
+							"// Store account ID for later use",
+							"if (pm.response.code === 201) {",
+							"    const responseJson = pm.response.json();",
+							"    pm.environment.set('accountId', responseJson.id);",
+							"    console.log('Created Account ID:', responseJson.id);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "choreo-api-key",
+						"value": "{{choreoApiKey}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"user_id\": {{userId}},\n  \"owner\": \"{{ownerName}}\",\n  \"account_no\": \"{{accountNumber}}\",\n  \"bank_name\": \"Test Bank\",\n  \"balance\": 1000.0\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/{{userId}}/accounts",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"{{userId}}",
+						"accounts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List Bank Accounts",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('Response is an array', function () {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.be.an('array');",
+							"});",
+							"",
+							"pm.test('Account exists in list', function () {",
+							"    const responseJson = pm.response.json();",
+							"    const accountId = parseInt(pm.environment.get('accountId'));",
+							"    const account = responseJson.find(acc => acc.id === accountId);",
+							"    pm.expect(account).to.not.be.undefined;",
+							"    pm.expect(account.user_id).to.eql(parseInt(pm.environment.get('userId')));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "choreo-api-key",
+						"value": "{{choreoApiKey}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/users/{{userId}}/accounts",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"{{userId}}",
+						"accounts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Second Account for Transfer",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 201', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"// Store second account ID for transfer",
+							"if (pm.response.code === 201) {",
+							"    const responseJson = pm.response.json();",
+							"    pm.environment.set('secondAccountId', responseJson.id);",
+							"    console.log('Created Second Account ID:', responseJson.id);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Generate second account number",
+							"const secondAccountNumber = 'ACC' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');",
+							"pm.environment.set('secondAccountNumber', secondAccountNumber);",
+							"console.log('Generated Second Account Number:', secondAccountNumber);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "choreo-api-key",
+						"value": "{{choreoApiKey}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"user_id\": {{userId}},\n  \"owner\": \"{{ownerName}}\",\n  \"account_no\": \"{{secondAccountNumber}}\",\n  \"bank_name\": \"Test Bank\",\n  \"balance\": 500.0\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/{{userId}}/accounts",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"{{userId}}",
+						"accounts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Transaction",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 201', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test('Transaction has required fields', function () {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.have.property('id');",
+							"    pm.expect(responseJson).to.have.property('user_id');",
+							"    pm.expect(responseJson).to.have.property('from_account_id');",
+							"    pm.expect(responseJson).to.have.property('to_account_id');",
+							"    pm.expect(responseJson).to.have.property('amount');",
+							"    pm.expect(responseJson).to.have.property('currency');",
+							"    pm.expect(responseJson).to.have.property('created_at');",
+							"});",
+							"",
+							"pm.test('Transaction created with correct data', function () {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson.user_id).to.eql(parseInt(pm.environment.get('userId')));",
+							"    pm.expect(responseJson.from_account_id).to.eql(parseInt(pm.environment.get('accountId')));",
+							"    pm.expect(responseJson.to_account_id).to.eql(parseInt(pm.environment.get('secondAccountId')));",
+							"    pm.expect(responseJson.amount).to.eql(parseFloat(pm.environment.get('transactionAmount')));",
+							"});",
+							"",
+							"// Store transaction ID for later use",
+							"if (pm.response.code === 201) {",
+							"    const responseJson = pm.response.json();",
+							"    pm.environment.set('transactionId', responseJson.id);",
+							"    console.log('Created Transaction ID:', responseJson.id);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "choreo-api-key",
+						"value": "{{choreoApiKey}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"from_account_id\": {{accountId}},\n  \"account_no\": \"{{secondAccountNumber}}\",\n  \"bank_name\": \"Test Bank\",\n  \"amount\": {{transactionAmount}},\n  \"currency\": \"USD\",\n  \"user_id\": {{userId}}\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/{{userId}}/transactions",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"{{userId}}",
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List Transactions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('Response is an array', function () {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.be.an('array');",
+							"});",
+							"",
+							"pm.test('Transaction exists in list', function () {",
+							"    const responseJson = pm.response.json();",
+							"    const transactionId = parseInt(pm.environment.get('transactionId'));",
+							"    const transaction = responseJson.find(txn => txn.id === transactionId);",
+							"    pm.expect(transaction).to.not.be.undefined;",
+							"    pm.expect(transaction.user_id).to.eql(parseInt(pm.environment.get('userId')));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "choreo-api-key",
+						"value": "{{choreoApiKey}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/users/{{userId}}/transactions",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"{{userId}}",
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Bank Account",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 204', function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"",
+							"console.log('Deleted Account ID:', pm.environment.get('secondAccountId'));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "choreo-api-key",
+						"value": "{{choreoApiKey}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/users/{{userId}}/accounts/{{secondAccountId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"{{userId}}",
+						"accounts",
+						"{{secondAccountId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Verify Account Deletion",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('Deleted account not in list', function () {",
+							"    const responseJson = pm.response.json();",
+							"    const deletedAccountId = parseInt(pm.environment.get('secondAccountId'));",
+							"    const account = responseJson.find(acc => acc.id === deletedAccountId);",
+							"    pm.expect(account).to.be.undefined;",
+							"});",
+							"",
+							"pm.test('Original account still exists', function () {",
+							"    const responseJson = pm.response.json();",
+							"    const originalAccountId = parseInt(pm.environment.get('accountId'));",
+							"    const account = responseJson.find(acc => acc.id === originalAccountId);",
+							"    pm.expect(account).to.not.be.undefined;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "choreo-api-key",
+						"value": "{{choreoApiKey}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/users/{{userId}}/accounts",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"{{userId}}",
+						"accounts"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global pre-request script",
+					"console.log('Running test with Base URL:', pm.environment.get('baseUrl'));",
+					"console.log('Using Choreo API Key:', pm.environment.get('choreoApiKey') ? 'SET' : 'NOT SET');"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script - runs after each request",
+					"pm.test('Response time is less than 5000ms', function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});",
+					"",
+					"pm.test('Content-Type header is present', function () {",
+					"    if (pm.response.code !== 204) {",
+					"        pm.response.to.have.header('Content-Type');",
+					"    }",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://your-api-endpoint.com",
+			"type": "string"
+		},
+		{
+			"key": "choreoApiKey",
+			"value": "your-choreo-api-key",
+			"type": "string"
+		}
+	]
+}
