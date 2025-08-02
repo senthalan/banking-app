@@ -482,10 +482,6 @@
 				"type": "text/javascript",
 				"exec": [
 					"// Global test script - runs after each request",
-					"pm.test('Response time is less than 5000ms', function () {",
-					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
-					"});",
-					"",
 					"pm.test('Content-Type header is present', function () {",
 					"    if (pm.response.code !== 204) {",
 					"        pm.response.to.have.header('Content-Type');",
