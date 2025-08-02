@@ -5,18 +5,10 @@ on:
     # Run tests every hour
     - cron: '0 * * * *'
   workflow_dispatch:
-    inputs:
-      base_url:
-        description: 'Base URL for the API'
-        required: false
-        default: 'https://your-api-endpoint.com'
-      choreo_api_key:
-        description: 'Choreo API Key (leave empty to use secret)'
-        required: false
 
 env:
-  BASE_URL: ${{ github.event.inputs.base_url || vars.BASE_URL || 'https://your-api-endpoint.com' }}
-  CHOREO_API_KEY: ${{ github.event.inputs.choreo_api_key || secrets.CHOREO_API_KEY }}
+  BASE_URL: ${{ vars.BASE_URL || 'https://your-api-endpoint.com' }}
+  CHOREO_API_KEY: ${{ secrets.CHOREO_API_KEY }}
 
 jobs:
   e2e-tests:
@@ -34,27 +26,6 @@ jobs:
     - name: Install Newman (Postman CLI)
       run: npm install -g newman newman-reporter-htmlextra
 
-    - name: Create environment file
-      run: |
-        cat > banking-api-environment.json << EOF
-        {
-          "id": "banking-api-env",
-          "name": "Banking API Environment",
-          "values": [
-            {
-              "key": "baseUrl",
-              "value": "${{ env.BASE_URL }}",
-              "enabled": true
-            },
-            {
-              "key": "choreoApiKey",
-              "value": "${{ env.CHOREO_API_KEY }}",
-              "enabled": true
-            }
-          ]
-        }
-        EOF
-
     - name: Validate environment configuration
       run: |
         echo "Base URL: ${{ env.BASE_URL }}"
@@ -67,7 +38,8 @@ jobs:
     - name: Run E2E Tests
       run: |
         newman run tester/postman-collection.json \
-          --environment banking-api-environment.json \
+          --env-var "baseUrl=${{ env.BASE_URL }}" \
+          --env-var "choreoApiKey=${{ env.CHOREO_API_KEY }}" \
           --reporters cli,htmlextra \
           --reporter-htmlextra-export test-results.html \
           --reporter-htmlextra-title "Banking API E2E Test Report" \
@@ -82,7 +54,6 @@ jobs:
         name: postman-test-results-${{ github.run_number }}
         path: |
           test-results.html
-          banking-api-environment.json
         retention-days: 30
 
     - name: Check test results
