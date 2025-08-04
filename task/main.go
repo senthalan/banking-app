@@ -103,7 +103,7 @@ func fetchTransactions() ([]Transaction, error) {
 	// Get the banking service URL from environment or use default
 	baseURL := getEnvOrDefault("CHOREO_BANKING_BACKEND_SERVICEURL", "http://localhost:8080")
 	url := fmt.Sprintf("%s/transactions", baseURL)
-	apiKeyHeader := os.Getenv("CHOREO_BANKING_BACKEND_CHOREOAPIKEY")
+	apiKeyHeader := os.Getenv("CHOREO_BANKING_BACKEND_APIKEY")
 
 	log.Printf("Fetching transactions from: %s", url)
 
