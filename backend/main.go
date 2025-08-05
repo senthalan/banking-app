@@ -61,12 +61,11 @@ func main() {
 	initDB()
 	r := gin.Default()
 
-	r.POST("/public/users/:userId/accounts", createAccount)
-	r.GET("/public/users/:userId/accounts", listAccounts)
-	r.DELETE("/public/users/:userId/accounts/:id", deleteAccount)
-	r.POST("/public/users/:userId/transactions", makeTransaction)
-	r.GET("/public/users/:userId/transactions", listTransactions)
-	r.GET("/internal/transactions", listInternalTransactions)
+	r.POST("/users/:userId/accounts", createAccount)
+	r.GET("/users/:userId/accounts", listAccounts)
+	r.DELETE("/users/:userId/accounts/:id", deleteAccount)
+	r.POST("/users/:userId/transactions", makeTransaction)
+	r.GET("/users/:userId/transactions", listTransactions)
 
 	r.Run()
 }
@@ -174,18 +173,6 @@ func listTransactions(c *gin.Context) {
 	userID := parseUint(c.Param("userId"))
 	var txs []Transaction
 	db.Where("user_id = ?", userID).Find(&txs)
-	if txs == nil {
-		txs = []Transaction{}
-	}
-	c.JSON(http.StatusOK, txs)
-}
-
-func listInternalTransactions(c *gin.Context) {
-	// Calculate 24 hours ago from current time
-	twentyFourHoursAgo := time.Now().Add(-24 * time.Hour)
-
-	var txs []Transaction
-	db.Where("created_at >= ?", twentyFourHoursAgo).Find(&txs)
 	if txs == nil {
 		txs = []Transaction{}
 	}
