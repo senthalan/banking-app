@@ -1,9 +1,9 @@
 name: Banking API E2E Tests
 
 on:
-  schedule:
-    # Run tests every hour
-    - cron: '0 * * * *'
+  # schedule:
+  #   # Run tests every hour
+  #   - cron: '0 * * * *'
   workflow_dispatch:
 
 env:
